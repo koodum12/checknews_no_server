@@ -173,9 +173,17 @@ if (typeof document !== "undefined") {
   const errorBox = $("errorBox");
   const resultBox = $("resultBox");
 
-  // 저장된 키 복원
+  // 키 우선순위: env.js(window.OPENAI_API_KEY) > localStorage 저장값
+  const envKey =
+    typeof window !== "undefined" && window.OPENAI_API_KEY
+      ? String(window.OPENAI_API_KEY).trim()
+      : "";
   const savedKey = localStorage.getItem(KEY_STORAGE);
-  if (savedKey) keyInput.value = savedKey;
+  if (envKey) {
+    keyInput.value = envKey;
+  } else if (savedKey) {
+    keyInput.value = savedKey;
+  }
 
   keyInput.addEventListener("change", () => {
     const v = keyInput.value.trim();
