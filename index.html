@@ -93,16 +93,8 @@
   <div class="wrap">
     <header>
       <h1>기사 편향 분석</h1>
-      <p>서버 없이 브라우저에서 OpenAI API로 직접 분석합니다. 기사 본문을 붙여넣으세요.</p>
+      <p>Vercel 서버리스 함수가 OpenAI로 분석합니다. 기사 본문을 붙여넣으세요.</p>
     </header>
-
-    <!-- API 키 -->
-    <div class="card">
-      <h2>OpenAI API 키</h2>
-      <label class="field" for="apiKey">본인 키를 입력하세요. 브라우저(localStorage)에만 저장되며 OpenAI로만 전송됩니다.</label>
-      <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
-      <p class="hint">키는 서버로 전송되지 않습니다. 이 페이지는 정적 파일이라 저장/공유되지 않습니다.</p>
-    </div>
 
     <!-- 본문 -->
     <div class="card">
@@ -124,12 +116,10 @@
     <div id="resultBox" hidden></div>
 
     <footer>
-      checkNews · 서버리스 프론트엔드 버전 · 편향 점수(백분율) + 높음/중간/낮음 평가
+      checkNews · Vercel 서버리스 버전 · 편향 점수(백분율) + 높음/중간/낮음 평가
     </footer>
   </div>
 
-  <!-- env.js: 있으면 window.OPENAI_API_KEY 를 자동으로 불러옵니다 (커밋되지 않음) -->
-  <script src="env.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

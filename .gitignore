@@ -1,12 +1,12 @@
-# 비밀키는 절대 커밋 금지
-# 실제 키가 담긴 env.js 는 커밋하지 않음 (env.example.js 만 공개)
-env.js
+# 비밀키/환경변수는 절대 커밋 금지
+# OpenAI 키는 Vercel 환경변수(OPENAI_API_KEY)로 설정, 로컬 개발은 .env 사용
 .env
 .env.*
 *.key
 
-# macOS
-.DS_Store
+# Vercel
+.vercel
 
-# 로컬 테스트 산출물
+# Node / macOS
 node_modules/
+.DS_Store
