@@ -1,51 +1,50 @@
 # checkNews — 서버리스(Vercel) 버전
 
-뉴스 기사의 편향을 **백분율(0~100%) + 높음/중간/낮음**으로 평가합니다.
-OpenAI 호출은 **Vercel 서버리스 함수**에서 이뤄지므로,
+원본 `checkNews/web`(Next.js) 프론트엔드를 **구조·UI·기능 그대로** 유지하면서,
+FastAPI 백엔드 대신 **Next.js Route Handler(서버리스 함수)** 로 OpenAI를 호출합니다.
 
-- 직접 Python/Node 서버를 구축·운영할 필요가 없고
-- **OpenAI API 키가 브라우저에 노출되지 않습니다.** (서버 환경변수로만 사용)
+- 별도의 Python 서버를 구축·운영할 필요 없음
+- OpenAI API 키는 **서버(환경변수)에서만** 사용 → 브라우저에 노출되지 않음
 
-## 구조
+## 기능 (원본과 동일)
 
-```
-index.html      프론트엔드 UI (정적)
-app.js          /api/analyze 호출 + 결과 렌더 (브라우저)
-api/analyze.js  Vercel 서버리스 함수 — OpenAI 호출 (동적)
-lib/analyzer.js 편향 분석 프롬프트·파싱 로직 (서버 전용)
-```
+- **기사 편향 분석** (`/analyze`) — URL 자동 추출 + 본문 직접 입력, 백분율 + 높음/중간/낮음
+- **대시보드** (`/articles`) — 목록·필터(키워드/언론사/기간/점수)·상세
+- **기사 비교** (`/compare`)
+- 근거 하이라이트, 편향 점수 게이지 등 UI 그대로
 
-요청/응답:
+## 서버리스로 바뀐 부분
 
-```
-POST /api/analyze   { "body": "기사 본문", "clean": false }
-→ { bias_score, bias_level, summary, report, highlight_sentences, cleaned, body }
-```
+| 기능 | 원본(FastAPI) | 이 버전 |
+| --- | --- | --- |
+| 편향 분석 | `POST /analyze` | `POST /api/analyze` (Next 서버리스 함수, OpenAI 서버사이드) |
+| URL 본문 추출 | `POST /extract` | `POST /api/extract` (서버사이드 fetch + GPT, CORS 제약 없음) |
+| 기사 저장/목록/삭제 | SQLite DB | **브라우저 localStorage** (별도 DB 불필요) |
+| 헬스체크 | `GET /health` | `GET /api/health` |
+
+> 저장/목록/비교 데이터는 브라우저 localStorage에 보관됩니다. (기기 간 공유는 안 됨)
+> 서버리스 함수 호출이 실패하면 원본과 동일하게 클라이언트 mock 분석으로 폴백합니다.
 
 ## 배포 (Vercel · 서버 구축 불필요)
 
-1. 이 저장소를 Vercel에 Import (New Project → 이 repo 선택).
-   빌드 설정은 기본값 그대로 두면 됩니다. (정적 파일 + `api/` 함수 자동 인식)
-2. **Project Settings → Environment Variables** 에 키를 추가합니다.
+1. 이 저장소를 Vercel에 Import (프레임워크: **Next.js** 자동 감지).
+2. **Project Settings → Environment Variables** 에 키 추가:
    - **Name: `OPENAI_API_KEY`**
    - Value: 본인 OpenAI 키 (`sk-...`)
-3. Deploy → `https://<프로젝트>.vercel.app` 에서 동작합니다.
+3. Deploy → `https://<프로젝트>.vercel.app`
 
-> 환경변수를 추가/변경한 뒤에는 **재배포(Redeploy)** 해야 반영됩니다.
+> 환경변수 추가/변경 후에는 **Redeploy** 해야 반영됩니다.
 
 ## 로컬 실행
 
 ```bash
-npm i -g vercel
-echo "OPENAI_API_KEY=sk-..." > .env   # .env 는 커밋되지 않음
-vercel dev                            # http://localhost:3000
+npm install
+echo "OPENAI_API_KEY=sk-..." > .env.local   # .env* 는 커밋되지 않음
+npm run dev                                  # http://localhost:3000
 ```
-
-> `index.html` 을 그냥 더블클릭(file://)하면 `/api/analyze` 함수가 없어 동작하지 않습니다.
-> 반드시 Vercel 배포 환경 또는 `vercel dev` 로 실행하세요.
 
 ## 참고
 
-- 분석 모델: `gpt-4o` · 본문 정제(선택): `gpt-4o-mini`
-- URL 자동 크롤링은 CORS 제약으로 제외 — **본문 붙여넣기** 방식입니다.
-- 키 변수 이름은 반드시 **`OPENAI_API_KEY`** 입니다.
+- 분석 모델 `gpt-4o` · 본문 정제/추출 `gpt-4o-mini`
+- 키 변수 이름은 반드시 **`OPENAI_API_KEY`** (서버 전용, `NEXT_PUBLIC_` 아님)
+- 분석/추출 프롬프트는 원본 백엔드(`server/services/`)와 동일
